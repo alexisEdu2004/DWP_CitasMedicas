@@ -1,27 +1,31 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DWP_CitasMedicas.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DWP_CitasMedicas.Models;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 
-namespace DWP_CitasMedicas.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class DoctorController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class DoctorController : ControllerBase
+    private readonly DwpContext _context;
+
+    public DoctorController(DwpContext context)
     {
-        private readonly DwpContext _context;
+        _context = context;
+    }
 
-        public DoctorController(DwpContext context)
-        {
-            _context = context;
-        }
+    // GET: api/Doctor
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctores()
+    {
+        return await _context.Doctors.ToListAsync();
+    }
 
-        // GET: api/Doctor
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Doctor>>> GetDoctors()
-        {
-            return await _context.Doctors.ToListAsync();
-        }
+    // POST: api/Doctor
+    [HttpPost]
+    public async Task<ActionResult<Doctor>> CrearDoctor([FromBody] Doctor doctor)
+    {
+        _context.Doctors.Add(doctor);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetDoctores), new { id = doctor.IdDoctor }, doctor);
     }
 }

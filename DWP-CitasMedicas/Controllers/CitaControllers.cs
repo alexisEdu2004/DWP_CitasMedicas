@@ -1,87 +1,62 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DWP_CitasMedicas.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DWP_CitasMedicas.Models;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 
-namespace DWP_CitasMedicas.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class CitaController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class CitaController : ControllerBase
+    private readonly DwpContext _context;
+
+    public CitaController(DwpContext context)
     {
-        private readonly DwpContext _context;
+        _context = context;
+    }
 
-        public CitaController(DwpContext context)
+    // GET: api/Cita
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Cita>>> GetCitas()
+    {
+        return await _context.Cita.ToListAsync();
+    }
+
+    // POST: api/Cita
+    [HttpPost]
+    public async Task<ActionResult<Cita>> CrearCita([FromBody] Cita cita)
+    {
+        _context.Cita.Add(cita);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetCitas), new { id = cita.IdCita }, cita);
+    }
+
+    // PUT: api/Cita/5
+    [HttpPut("{id}")]
+    public async Task<IActionResult> ActualizarCita(int id, [FromBody] Cita cita)
+    {
+        if (id != cita.IdCita)
         {
-            _context = context;
+            return BadRequest();
         }
 
-        // GET: api/Cita
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<Cita>>> GetCitas()
+        _context.Entry(cita).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    // DELETE: api/Cita/5
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> EliminarCita(int id)
+    {
+        var cita = await _context.Cita.FindAsync(id);
+        if (cita == null)
         {
-            return await _context.Cita.ToListAsync();
+            return NotFound();
         }
 
-        // GET: api/Cita/{id}
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Cita>> GetCita(int id)
-        {
-            var cita = await _context.Cita.FindAsync(id);
+        _context.Cita.Remove(cita);
+        await _context.SaveChangesAsync();
 
-            if (cita == null)
-            {
-                return NotFound("Cita no encontrada.");
-            }
-
-            return Ok(cita);
-        }
-
-        // POST: api/Cita
-        [HttpPost]
-        public async Task<ActionResult<Cita>> PostCita([FromBody] Cita cita)
-        {
-            if (cita == null)
-            {
-                return BadRequest("Datos de cita inválidos.");
-            }
-
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetCita), new { id = cita.IdCita }, cita);
-        }
-
-        // PUT: api/Cita/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCita(int id, [FromBody] Cita cita)
-        {
-            if (id != cita.IdCita)
-            {
-                return BadRequest("ID de cita no coincide.");
-            }
-
-            _context.Entry(cita).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        // DELETE: api/Cita/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCita(int id)
-        {
-            var cita = await _context.Cita.FindAsync(id);
-
-            if (cita == null)
-            {
-                return NotFound("Cita no encontrada.");
-            }
-
-            _context.Cita.Remove(cita);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
+        return NoContent();
     }
 }

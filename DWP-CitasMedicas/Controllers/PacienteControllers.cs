@@ -1,93 +1,74 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DWP_CitasMedicas.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DWP_CitasMedicas.Models;
-using System.Threading.Tasks;
-using System.Linq;
 
-namespace DWP_CitasMedicas.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class PacienteController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class PacienteController : ControllerBase
+    private readonly DwpContext _context;
+
+    public PacienteController(DwpContext context)
     {
-        private readonly DwpContext _context;
+        _context = context;
+    }
 
-        public PacienteController(DwpContext context)
+    // GET: api/Paciente
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<Paciente>>> GetPacientes()
+    {
+        return await _context.Pacientes.ToListAsync();
+    }
+
+    // GET: api/Paciente/5
+    [HttpGet("{id}")]
+    public async Task<ActionResult<Paciente>> GetPaciente(int id)
+    {
+        var paciente = await _context.Pacientes.FindAsync(id);
+        if (paciente == null)
         {
-            _context = context;
+            return NotFound();
+        }
+        return paciente;
+    }
+
+    // POST: api/Paciente
+    [HttpPost]
+    public async Task<ActionResult<Paciente>> CrearPaciente([FromBody] Paciente paciente)
+    {
+        _context.Pacientes.Add(paciente);
+        await _context.SaveChangesAsync();
+        return CreatedAtAction(nameof(GetPaciente), new { id = paciente.IdPaciente }, paciente);
+    }
+
+    // PUT: api/Paciente/5
+    [HttpPut("{id}")]
+    public async Task<IActionResult> ActualizarPaciente(int id, [FromBody] Paciente paciente)
+    {
+        if (id != paciente.IdPaciente)
+        {
+            return BadRequest();
         }
 
-        // Obtener un paciente por cliente
-        [HttpGet("byCliente/{idCliente}")]
-        public async Task<IActionResult> GetPacienteByCliente(int idCliente)
+        _context.Entry(paciente).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
+
+    // DELETE: api/Paciente/5
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> EliminarPaciente(int id)
+    {
+        var paciente = await _context.Pacientes.FindAsync(id);
+        if (paciente == null)
         {
-            var paciente = await _context.Pacientes
-                .FirstOrDefaultAsync(p => p.IdCliente == idCliente);
-            if (paciente == null)
-            {
-                return NotFound("Paciente no encontrado para este cliente.");
-            }
-            return Ok(paciente);
+            return NotFound();
         }
 
-        // Crear un nuevo paciente
-        [HttpPost("byCliente/{idCliente}")]
-        public async Task<IActionResult> CreatePaciente(int idCliente, [FromBody] Paciente paciente)
-        {
-            if (paciente == null)
-            {
-                return BadRequest("Los datos del paciente son inválidos.");
-            }
+        _context.Pacientes.Remove(paciente);
+        await _context.SaveChangesAsync();
 
-            var cliente = await _context.Clientes.FindAsync(idCliente);
-            if (cliente == null)
-            {
-                return NotFound("Cliente no encontrado.");
-            }
-
-            paciente.IdCliente = idCliente;
-            _context.Pacientes.Add(paciente);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction(nameof(GetPacienteByCliente), new { idCliente = paciente.IdCliente }, paciente);
-        }
-
-        // Actualizar un paciente existente
-        [HttpPut("byCliente/{idCliente}")]
-        public async Task<IActionResult> UpdatePaciente(int idCliente, [FromBody] Paciente paciente)
-        {
-            if (paciente == null || paciente.IdCliente == idCliente)
-            {
-                return BadRequest("Los datos del paciente son inválidos.");
-            }
-
-            var cliente = await _context.Clientes.FindAsync(idCliente);
-            if (cliente == null)
-            {
-                return NotFound("Cliente no encontrado.");
-            }
-
-            _context.Entry(paciente).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
-
-        // Eliminar un paciente
-        [HttpDelete("byCliente/{idCliente}")]
-        public async Task<IActionResult> DeletePaciente(int idCliente)
-        {
-            var paciente = await _context.Pacientes
-                .FirstOrDefaultAsync(p => p.IdCliente == idCliente);
-            if (paciente == null)
-            {
-                return NotFound("Paciente no encontrado.");
-            }
-
-            _context.Pacientes.Remove(paciente);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
-        }
+        return NoContent();
     }
 }

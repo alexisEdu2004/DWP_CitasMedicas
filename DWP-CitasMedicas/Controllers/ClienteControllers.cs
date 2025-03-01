@@ -1,44 +1,48 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using DWP_CitasMedicas.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DWP_CitasMedicas.Models;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.Linq;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using System.Security.Claims;
 
-namespace DWP_CitasMedicas.Controllers
+[ApiController]
+[Route("api/[controller]")]
+public class ClienteController : ControllerBase
 {
-    public class ClienteController : ControllerBase
+    private readonly DwpContext _context;
+
+    public ClienteController(DwpContext context)
     {
-        private readonly DwpContext _context;
-
-        public ClienteController(DwpContext context)
-        {
-            _context = context;
-        }
-
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] Cliente cliente)
-        {
-            if (await _context.Clientes.AnyAsync(c => c.Correo == cliente.Correo))
-                return BadRequest("El correo ya está registrado.");
-
-            _context.Clientes.Add(cliente);
-            await _context.SaveChangesAsync();
-            return Ok("Cuenta creada con éxito.");
-        }
-
-        [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] Cliente loginData)
-        {
-            var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Correo == loginData.Correo && c.Contraseña == loginData.Contraseña);
-            if (cliente == null) return Unauthorized("Credenciales incorrectas.");
-            return Ok(new { mensaje = "Inicio de sesión exitoso" });
-        }
-
-      
+        _context = context;
     }
+
+    [HttpPost("Registrar")]
+    public async Task<IActionResult> RegistrarCliente([FromBody] Cliente cliente)
+    {
+        if (_context.Clientes.Any(c => c.Correo == cliente.Correo))
+        {
+            return BadRequest("El correo ya está registrado.");
+        }
+
+        // Guardar la contraseña 
+        _context.Clientes.Add(cliente);
+        await _context.SaveChangesAsync();
+
+        return Ok(new { Message = "Cliente registrado exitosamente." });
+    }
+
+    [HttpPost("Login")]
+    public async Task<IActionResult> IniciarSesion([FromBody] LoginRequest request)
+    {
+        var cliente = await _context.Clientes.FirstOrDefaultAsync(c => c.Correo == request.Correo);
+        if (cliente == null || cliente.Contraseña != request.Contraseña) // Comparación en texto plano
+        {
+            return Unauthorized("Correo o contraseña incorrectos.");
+        }
+
+        return Ok(new { Message = "Inicio de sesión exitoso.", ClienteId = cliente.IdCliente });
+    }
+}
+
+public class LoginRequest
+{
+    public string Correo { get; set; } = null!;
+    public string Contraseña { get; set; } = null!;
 }
