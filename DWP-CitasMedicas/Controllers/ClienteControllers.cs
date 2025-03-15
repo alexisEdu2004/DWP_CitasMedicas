@@ -16,12 +16,14 @@ public class ClienteController : ControllerBase
     [HttpPost("Registrar")]
     public async Task<IActionResult> RegistrarCliente([FromBody] Cliente cliente)
     {
+        // Verifica si el correo ya está registrado
         if (_context.Clientes.Any(c => c.Correo == cliente.Correo))
         {
+            Console.WriteLine($"Correo ya registrado: {cliente.Correo}"); // Agrega esto
             return BadRequest("El correo ya está registrado.");
         }
 
-        // Guardar la contraseña 
+        // Guardar el cliente en la base de datos
         _context.Clientes.Add(cliente);
         await _context.SaveChangesAsync();
 

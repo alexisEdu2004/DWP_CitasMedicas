@@ -9,15 +9,13 @@ public partial class Doctor
 
     public string Nombre { get; set; } = null!;
 
-    public int? Edad { get; set; }
+    public string CedulaProfesional { get; set; } = null!;
 
     public string? Correo { get; set; }
 
     public string? Numero { get; set; }
 
     public string? Horario { get; set; }
-
-    public string? CedulaProfesional { get; set; }
 
     public virtual ICollection<Agenda> Agenda { get; set; } = new List<Agenda>();
 

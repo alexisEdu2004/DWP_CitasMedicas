@@ -18,7 +18,7 @@ public class AgendaController : ControllerBase
     public async Task<ActionResult<IEnumerable<Agenda>>> GetAgendasDisponibles()
     {
         return await _context.Agenda
-            .Where(a => a.FechaCita > DateTime.Now) 
+            .Where(a => a.FechaCita > DateTime.Now)
             .ToListAsync();
     }
 

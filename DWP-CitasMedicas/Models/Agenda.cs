@@ -15,5 +15,6 @@ public partial class Agenda
 
     public virtual ICollection<Cita> Cita { get; set; } = new List<Cita>();
 
+
     public virtual Doctor? IdDoctorNavigation { get; set; }
 }
